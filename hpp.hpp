@@ -20,7 +20,8 @@ extern void glob_init();
 
 struct Sym {
 	string val;
-	Sym(string); Sym(Sym*);
+	Sym(string); //Sym(Sym*);
+	virtual Sym* copy();
 	string dump(int depth=0); string pad(int);
 	virtual string tagval(); string tagstr();
 	vector<Sym*> nest; void push(Sym*); void pop();
@@ -36,7 +37,7 @@ struct Sym {
 extern void W(Sym*);
 extern void W(string);
 
-struct Str: Sym { Str(string); Sym*add(Sym*); string tagval(); };
+struct Str: Sym { Str(string); Sym*copy(); Sym*add(Sym*); string tagval(); };
 
 struct List: Sym { List(); Sym*add(Sym*); Sym*div(Sym*); Sym*str(); };
 

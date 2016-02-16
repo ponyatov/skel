@@ -8,6 +8,13 @@ void W(string s) { cout<<s; }
 
 Sym::Sym(string V)		{ val=V; local = new Env(&glob_env); }
 
+Sym::Sym(Sym*o):Sym(o->str()->val) {
+	// env{}
+	local = Env::copy(o->local);
+	// nest[]
+	for (auto it=o->nest.begin(),e=o->nest.end();it!=e;it++) push(*it);
+}
+
 string Sym::pad(int n) { string S; for(int i=0;i<n;i++) S+='\t'; return S; }
 string Sym::tagval() { return "<"+val+">"; }
 string Sym::tagstr() { return "<'"+val+"'>"; }
@@ -30,6 +37,7 @@ Sym* Sym::eval(Env*env) {
 Sym* Sym::str()	{ return new Str(val); }
 
 Sym* Sym::eq(Sym*o) { glob_env.iron[val]=o; return o; }
+Sym* Sym::at(Sym*o) { push(o); return this; }
 
 Sym* Sym::add(Sym*o) { Sym*R=new Op("+");
 	R->push(this); R->push(o); return R; }
@@ -67,6 +75,7 @@ Op::Op(string V):Sym(V) {}
 Sym* Op::eval(Env*env) {
 	if (val=="~") return nest[0]; else Sym::eval(env);
 	if (val=="=") return nest[0]->eq(nest[1]);
+	if (val=="@") return nest[0]->at(nest[1]);
 	if (val=="+") return nest[0]->add(nest[1]);
 	if (val=="/") return nest[0]->div(nest[1]);
 	return this;
@@ -74,7 +83,19 @@ Sym* Op::eval(Env*env) {
 
 Lambda::Lambda():Sym("^") {}
 
+Sym* Lambda::at(Sym*o) {			// FUCKEN APPLY
+	Sym* R = new Sym(this);
+	R->local->iron.begin()->second = o;
+	return R;
+}
+
 Env::Env(Env*X) { next=X; }
+Env* Env::copy(Env*X) {
+	Env* E = new Env(X);
+	for (auto it=X->iron.begin(),e=X->iron.end();it!=e;it++)
+		E->iron[it->first]=it->second;
+	return E;
+}
 Sym* Env::lookup(Sym*o) {
 	auto it=iron.find(o->val); if (it!=iron.end()) return it->second;
 	else if (next) return next->lookup(o);

@@ -9,7 +9,7 @@ string LexString;
 #[^\n]*			{}
 
 '				{BEGIN(lexstring);LexString="";}
-<lexstring>'	{BEGIN(INITIAL); yylval.o = new Str(LexString); return SYM;}
+<lexstring>'	{BEGIN(INITIAL); yylval.o = new Str(LexString); return STR;}
 <lexstring>.	{LexString+=yytext[0];}
 
 [a-zA-Z0-9_.]+	TOC(Sym,SYM)

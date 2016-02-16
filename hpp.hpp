@@ -19,19 +19,26 @@ extern void glob_init();
 struct Sym {
 	string val;
 	Sym(string);
-	string dump(int depth=0); string tagval(); string pad(int);
+	string dump(int depth=0); string pad(int);
+	virtual string tagval(); string tagstr();
 	vector<Sym*> nest; void push(Sym*); void pop();
 	virtual Sym* eval(Env*);
+	virtual Sym* str();
 	virtual Sym* eq(Sym*);
+	virtual Sym* add(Sym*);
 	virtual Sym* div(Sym*);
 };
 
 extern void W(Sym*);
 extern void W(string);
 
-struct List: Sym { List(); Sym*div(Sym*); };
+struct Str: Sym { Str(string); Sym*add(Sym*); string tagval(); };
+
+struct List: Sym { List(); Sym*add(Sym*); Sym*div(Sym*); Sym*str(); };
 
 struct Op: Sym { Op(string); Sym*eval(Env*); };
+
+struct Lambda: Sym { Lambda(); };
 
 extern int yylex();
 extern int yylineno;

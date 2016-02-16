@@ -3,17 +3,21 @@
 %}
 %defines %union { Sym*o; }
 %token <o> SYM
-%token <o> LQ RQ
-%token <o> EQ
+%token <o> L R LQ RQ LB RB
+%token <o> EQ AT TILD
 %token <o> ADD SUB MUL DIV POW
-%type <o> ex list
+%type <o> ex list lambda
 
 %left EQ
 %%
 REPL	: | REPL ex		{ W($2->eval(&glob_env)); W("\n"); } ;
 ex		: SYM
+		| L ex R		{ $$=$2; }
 		| LQ list RQ	{ $$=$2; }
+		| LB lambda RB	{ $$=$2; }
+		| TILD ex		{ $$=$1; $$->push($2); }
 		| ex EQ ex		{ $$=$2; $$->push($1); $$->push($3); }
+		| ex AT ex		{ $$=$2; $$->push($1); $$->push($3); }
 		| ex ADD ex		{ $$=$2; $$->push($1); $$->push($3); }
 		| ex SUB ex		{ $$=$2; $$->push($1); $$->push($3); }
 		| ex MUL ex		{ $$=$2; $$->push($1); $$->push($3); }
@@ -22,5 +26,8 @@ ex		: SYM
 ;
 list	:				{ $$=new List(); }
 	 	| list ex		{ $$=$1; $$->push($2); }
+;
+lambda	:				{ $$=new Lambda(); }
+	 	| lambda ex		{ $$=$1; $$->push($2); }
 ;
 %%

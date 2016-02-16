@@ -23,6 +23,7 @@ string LexString;
 
 \=				TOC(Op,EQ)
 \@				TOC(Op,AT)
+\|				TOC(Op,MAP)
 \~				TOC(Op,TILD)
 \:				TOC(Op,COLON)
 

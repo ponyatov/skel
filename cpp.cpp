@@ -6,11 +6,12 @@ int main() { env_init(); return yyparse(); }
 void W(Sym*o) { cout<<o->dump(); }
 void W(string s) { cout<<s; }
 
-Sym::Sym(string V)		{ val=V; }
+Sym::Sym(string T,string V)		{ tag=T; val=V; }
+Sym::Sym(string V):Sym("",V)	{}
 
 string Sym::pad(int n) { string S; for(int i=0;i<n;i++) S+='\t'; return S; }
-string Sym::tagval() { return "<"+val+">"; }
-string Sym::tagstr() { return "<'"+val+"'>"; }
+string Sym::tagval() { return "<"+tag+":"+val+">"; }
+string Sym::tagstr() { return "<"+tag+":'"+val+"'>"; }
 string Sym::dump(int depth) {
 	string S = "\n"+pad(depth)+tagval();				// <T:V>
 	for (auto pr=pars.begin(),e=pars.end();pr!=e;pr++)	// par{}ameters
@@ -40,11 +41,12 @@ Sym* Sym::div(Sym*o) { Sym*R=new Op("/");
 	R->push(this); R->push(o); return R; }
 
 Str::Str(string V):Sym(V) {}
+Sym* Str::copy() { return new Str(val); }
 string Str::tagval() { return tagstr(); }
 Sym* Str::eval() { return this; }
 Sym* Str::add(Sym*o) { return new Str(val+o->str()->val); }
 
-List::List():Sym("") {}
+List::List():Sym("[","]") {}
 
 Sym* List::str() { string S;
 	for (auto it=nest.begin(),e=nest.end();it!=e;it++) S+=(*it)->str()->val;
@@ -54,7 +56,7 @@ Sym* List::add(Sym*o) {
 	List*L = new List();
 	for (auto it=nest.begin(),e=nest.end();it!=e;it++)
 			L->push(*it);
-	if (o->val!="") L->push(o); else
+	if (o->val!="]") L->push(o); else
 		for (auto it=o->nest.begin(),e=o->nest.end();it!=e;it++)
 			L->push(*it);
 	return L; }
@@ -67,7 +69,10 @@ Sym* List::div(Sym*o) {
 		L->pop(); }
 	return L; }
 
-Op::Op(string V):Sym(V) {}
+Op::Op(string V):Sym("op",V) {}
+Sym* Op::copy() { Sym* R = new Op(val);
+	for (auto it=nest.begin(),e=nest.end();it!=e;it++) R->push(*it);
+	return R; }
 Sym* Op::eval() {
 	if (val=="~") return nest[0]; else Sym::eval();
 	if (val=="=") return nest[0]->eq(nest[1]);
@@ -77,22 +82,43 @@ Sym* Op::eval() {
 	return this;
 }
 
-Lambda::Lambda():Sym("^") {}
+Fn::Fn(string V, FN F):Sym("V") { fn=F; }
+Sym* Fn::at(Sym*o) { return fn(o); }
 
-Sym* Lambda::at(Sym*o) {			// FUCKEN APPLY
+Sym* Fn::evaluate(Sym*o) { return o->eval(); }
+
+Lambda::Lambda():Sym("^","^") {}
+Sym* Lambda::eval() { return this; } // block eval
+
+// f**ken magic: apply by replace, not apply by eval in environment
+// WARNING: RECURSION NOT APPLICABLE (???)
+
+bool Sym::match(Sym*o) { return o->str()->val==val; }
+
+Sym* Sym::copy()		{ Sym*C = new Sym(tag,val);
+	for (auto pr=pars.begin(),e=pars.end();pr!=e;pr++)	// par{}ameters
+		C->pars[pr->first]=pr->second;
+	for (auto it=nest.begin(),e=nest.end();it!=e;it++)	// nest[]ed
+		C->push((*it)->copy());
+	return C; }
+
+Sym* Sym::replace(Sym*A,Sym*B) {
+	if (match(A)) return B;
+	for (auto pr=pars.begin(),e=pars.end();pr!=e;pr++)
+		pars[pr->first]= pr->second->replace(A,B);
+	for (auto it=nest.begin(),e=nest.end();it!=e;it++)
+		(*it) = (*it)->replace(A,B);
 	return this; }
-	/*
-	Sym* R = this->copy();
-	R->local->iron["x"]=new Str("y");
-	R->local->iron.begin()->second = o;	// set parameter value
-//	for (auto it=nest.begin(),e=nest.end();it!=e;it++)
-//		(*it)=(*it)->eval(&glob_env);
-//	R->eval(local);
-	return R;//->eval(&glob_env);
-}*/
+
+Sym* Lambda::at(Sym*o) {
+	Sym* R = copy()->replace(pars.begin()->second,o);
+//	return R;	// uncomment to see replaces in copied {lambda} 
+	if (R->nest.size()!=1) yyerror("multibody lambda:"+R->dump());
+	else return (R->nest[0])->eval(); }
 
 map<string,Sym*> env;
 void env_init() {
 	env["MODULE"] = new Str(MODULE);
+	env["eval"] = new Fn("eval",Fn::evaluate);
 }
 

@@ -8,12 +8,13 @@
 using namespace std;
 
 struct Sym {
-	string val;
-	Sym(string);
+	string tag,val;
+	Sym(string,string); Sym(string); virtual Sym* copy();
 	string dump(int depth=0); string pad(int);
 	virtual string tagval(); string tagstr();
 	vector<Sym*> nest; void push(Sym*); void pop();
 	map<string,Sym*> pars; void par(Sym*);
+	Sym* replace(Sym*,Sym*); virtual bool match(Sym*);
 	virtual Sym* eval();
 	virtual Sym* str();
 	virtual Sym* eq(Sym*);
@@ -28,13 +29,19 @@ extern void env_init();
 extern void W(Sym*);
 extern void W(string);
 
-struct Str: Sym { Str(string); Sym*add(Sym*); string tagval(); Sym*eval(); };
+struct Str: Sym { Str(string); Sym*copy(); 
+	Sym*add(Sym*); string tagval(); Sym*eval(); };
 
 struct List: Sym { List(); Sym*add(Sym*); Sym*div(Sym*); Sym*str(); };
 
-struct Op: Sym { Op(string); Sym*eval(); };
+struct Op: Sym { Op(string); Sym*eval(); Sym*copy(); };
 
-struct Lambda: Sym { Lambda(); Sym*at(Sym*); };
+typedef Sym*(*FN)(Sym*);
+struct Fn:Sym { Fn(string,FN); FN fn; Sym*at(Sym*);
+	static Sym* evaluate(Sym*);
+};
+
+struct Lambda: Sym { Lambda(); Sym*eval(); Sym*at(Sym*); };
 
 extern int yylex();
 extern int yylineno;

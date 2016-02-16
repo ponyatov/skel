@@ -12,6 +12,7 @@ struct Env {
 	Env* next; Env(Env*);
 	map<string,Sym*> iron;
 	Sym* lookup(Sym*);
+	string dump();
 };
 extern Env glob_env;
 extern void glob_init();
@@ -22,6 +23,7 @@ struct Sym {
 	string dump(int depth=0); string pad(int);
 	virtual string tagval(); string tagstr();
 	vector<Sym*> nest; void push(Sym*); void pop();
+	Env* local; void par(Sym*);
 	virtual Sym* eval(Env*);
 	virtual Sym* str();
 	virtual Sym* eq(Sym*);

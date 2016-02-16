@@ -24,6 +24,7 @@ string LexString;
 \=				TOC(Op,EQ)
 \@				TOC(Op,AT)
 \~				TOC(Op,TILD)
+\:				TOC(Op,COLON)
 
 \+				TOC(Op,ADD)
 \-				TOC(Op,SUB)

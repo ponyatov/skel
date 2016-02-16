@@ -1,7 +1,9 @@
+
 core		= [ ypp.ypp lpp.lpp hpp.hpp cpp.cpp Makefile ]
 files		= [ src.src log.log ] + core
 bat.bat		= [ '@start .' '@gvim -p '+files/' ' ]
 skeleton	= files + [ bat.bat .gitignore ]
 
-file = {}
-file@~file
+pp = { p: p+'pp' } @ bb
+#file = { X: [ pp@X . pp@X ] }
+#file@~file

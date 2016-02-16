@@ -1,0 +1,17 @@
+
+files = [
+	src.src log.log
+	core = [ ypp.ypp lpp.lpp hpp.hpp cpp.cpp Makefile ]
+]
+
+bat.bat = [
+	'@start .'
+	'@gvim -p '+files/' '
+]
+
+skeleton = [
+	bat.bat .gitignore
+]
+
+
+[ 1 2 3 ] / '' []/0

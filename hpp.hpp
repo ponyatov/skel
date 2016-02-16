@@ -7,26 +7,14 @@
 #include <map>
 using namespace std;
 
-struct Sym;
-struct Env {
-	Env* next; Env(Env*);
-	static Env* copy(Env*);
-	map<string,Sym*> iron;
-	Sym* lookup(Sym*);
-	string dump();
-};
-extern Env glob_env;
-extern void glob_init();
-
 struct Sym {
 	string val;
-	Sym(string); //Sym(Sym*);
-	virtual Sym* copy();
+	Sym(string);
 	string dump(int depth=0); string pad(int);
 	virtual string tagval(); string tagstr();
 	vector<Sym*> nest; void push(Sym*); void pop();
-	Env* local; void par(Sym*);
-	virtual Sym* eval(Env*);
+	map<string,Sym*> pars; void par(Sym*);
+	virtual Sym* eval();
 	virtual Sym* str();
 	virtual Sym* eq(Sym*);
 	virtual Sym* at(Sym*);
@@ -34,14 +22,17 @@ struct Sym {
 	virtual Sym* div(Sym*);
 };
 
+extern map<string,Sym*> env;
+extern void env_init();
+
 extern void W(Sym*);
 extern void W(string);
 
-struct Str: Sym { Str(string); Sym*copy(); Sym*add(Sym*); string tagval(); };
+struct Str: Sym { Str(string); Sym*add(Sym*); string tagval(); Sym*eval(); };
 
 struct List: Sym { List(); Sym*add(Sym*); Sym*div(Sym*); Sym*str(); };
 
-struct Op: Sym { Op(string); Sym*eval(Env*); };
+struct Op: Sym { Op(string); Sym*eval(); };
 
 struct Lambda: Sym { Lambda(); Sym*at(Sym*); };
 

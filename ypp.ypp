@@ -9,8 +9,9 @@
 %type <o> ex scalar list lambda
 
 %left EQ
+%left TILD
 %%
-REPL	: | REPL ex			{ W($2->eval(&glob_env)); W("\n"); } ;
+REPL	: | REPL ex			{ W($2->eval()); W("\n"); } ;
 scalar	: SYM | NUM | STR ;
 ex		: scalar
 		| L ex R			{ $$=$2; }

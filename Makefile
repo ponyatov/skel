@@ -8,7 +8,7 @@ CXXFLAGS = -I$(CORE) -I. -std=gnu++11 \
 		   -DMODULE=\"$(notdir $(CURDIR))\" -DOS=\"$(OS)\" -DEXE=\"$(EXE)\"
 ./exe.exe: $(C) $(H) Makefile
 	$(CXX) $(CXXFLAGS) -o $@ $(C)
-ypp.tab.cpp: $(CORE)/ypp.ypp
+ypp.tab.cpp: ../Y/ypp.ypp
 	bison $<
-lex.yy.c: $(CORE)/lpp.lpp
+lex.yy.c: ../Y/lpp.lpp
 	flex $<

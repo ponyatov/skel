@@ -75,6 +75,7 @@ Sym* Op::copy() { Sym* R = new Op(val);
 	return R; }
 Sym* Op::eval() {
 	if (val=="~") return nest[0]; else Sym::eval();
+	if (val==":") return nest[0]->inher(nest[1]);
 	if (val=="=") return nest[0]->eq(nest[1]);
 	if (val=="@") return nest[0]->at(nest[1]);
 	if (val=="+") return nest[0]->add(nest[1]);
@@ -115,9 +116,15 @@ Sym* Lambda::at(Sym*o) {								// lambda apply
 	else return (R->nest[0])->eval(); } // with eval
 //	else return (R->nest[0])        ; } // as symbolic expression
 
+//Class::Class(Sym*o):Sym("class",o->str()->val) {}
+//Sym* Class::cclass(Sym*o) { return new Class(o); }
+
+Sym* Sym::inher(Sym*o) { return new Sym(val,o->val); }
+
 map<string,Sym*> env;
 void env_init() {
 	env["MODULE"] = new Str(MODULE);
 	env["eval"] = new Fn("eval",Fn::evaluate);
+//	env["class"] = new Fn("class",Class::cclass);
 }
 

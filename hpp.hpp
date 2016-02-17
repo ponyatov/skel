@@ -17,6 +17,7 @@ struct Sym {
 	Sym* replace(Sym*,Sym*); virtual bool match(Sym*);
 	virtual Sym* eval();
 	virtual Sym* str();
+	virtual Sym* inher(Sym*);
 	virtual Sym* eq(Sym*);
 	virtual Sym* at(Sym*);
 	virtual Sym* add(Sym*);
@@ -42,6 +43,8 @@ struct Fn:Sym { Fn(string,FN); FN fn; Sym*at(Sym*);
 };
 
 struct Lambda: Sym { Lambda(); Sym*eval(); Sym*at(Sym*); };
+
+//struct Class: Sym { Class(Sym*); static Sym* cclass(Sym*); };
 
 extern int yylex();
 extern int yylineno;

@@ -1,5 +1,5 @@
 CORE = .
-#CORE = ../Y
+CORE = ../Y
 log.log: ../Y/skel/skel.bI ./exe.exe
 	./exe.exe < $< > $@ && tail $(TAIL) log.log
 C = $(CORE)/cpp.cpp ypp.tab.cpp lex.yy.c

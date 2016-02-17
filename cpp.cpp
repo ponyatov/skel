@@ -15,7 +15,7 @@ string Sym::tagstr() { return "<"+tag+":'"+val+"'>"; }
 string Sym::dump(int depth) {
 	string S = "\n"+pad(depth)+tagval();				// <T:V>
 	for (auto pr=pars.begin(),e=pars.end();pr!=e;pr++)	// par{}ameters
-		S+=","+pr->first+":"+pr->second->tagval();		
+		S+="\n"+pad(depth+1)+pr->first+" -> "+pr->second->tagval();		
 	for (auto it=nest.begin(),e=nest.end();it!=e;it++)	// nest[]ed
 		S+=(*it)->dump(depth+1);
 	return S; }
@@ -39,6 +39,17 @@ Sym* Sym::add(Sym*o) { Sym*R=new Op("+");
 	R->push(this); R->push(o); return R; }
 Sym* Sym::div(Sym*o) { Sym*R=new Op("/");
 	R->push(this); R->push(o); return R; }
+
+Sym* Sym::ins(Sym*o) { push(o); return this; }
+
+// ================================================================= DIRECTIVE
+Directive::Directive(string V):Sym("",V) {
+	while (val.size() && (val[0]!=' ' && val[0]!='\t')) {
+		tag += val[0]; val.erase(0,1); }
+	while (val.size() && (val[0]==' ' || val[0]=='\t')) {
+		               val.erase(0,1); }				}
+Sym* Directive::eval() { return this; }
+
 
 Str::Str(string V):Sym(V) {}
 Sym* Str::copy() { return new Str(val); }
@@ -69,17 +80,22 @@ Sym* List::div(Sym*o) {
 		L->pop(); }
 	return L; }
 
+Cons::Cons(Sym*A,Sym*B):Sym("","") { push(A); push(B); }
+
 Op::Op(string V):Sym("op",V) {}
 Sym* Op::copy() { Sym* R = new Op(val);
 	for (auto it=nest.begin(),e=nest.end();it!=e;it++) R->push(*it);
 	return R; }
 Sym* Op::eval() {
-	if (val=="~") return nest[0]; else Sym::eval();
+	if (val=="~") return nest[0];
+	if (val=="%") return (nest[0]->eval())->member(nest[1]);
+	Sym::eval();
 	if (val==":") return nest[0]->inher(nest[1]);
 	if (val=="=") return nest[0]->eq(nest[1]);
 	if (val=="@") return nest[0]->at(nest[1]);
 	if (val=="+") return nest[0]->add(nest[1]);
 	if (val=="/") return nest[0]->div(nest[1]);
+//	if (val=="+=") return nest[0]->ins(nest[1]);
 	return this; }
 
 Fn::Fn(string V, FN F):Sym("V") { fn=F; }
@@ -119,7 +135,10 @@ Sym* Lambda::at(Sym*o) {								// lambda apply
 //Class::Class(Sym*o):Sym("class",o->str()->val) {}
 //Sym* Class::cclass(Sym*o) { return new Class(o); }
 
-Sym* Sym::inher(Sym*o) { return new Sym(val,o->val); }
+Sym* Sym::inher(Sym*o) {
+	Sym*O=new Sym(val,o->val); O->pars["super"]=this; return O; }
+Sym* Sym::member(Sym*o) {
+	pars[o->nest[0]->str()->val]= o->nest[1]; return this; }
 
 map<string,Sym*> env;
 void env_init() {

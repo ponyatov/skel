@@ -18,10 +18,12 @@ struct Sym {
 	virtual Sym* eval();
 	virtual Sym* str();
 	virtual Sym* inher(Sym*);
+	virtual Sym* member(Sym*);
 	virtual Sym* eq(Sym*);
 	virtual Sym* at(Sym*);
 	virtual Sym* add(Sym*);
 	virtual Sym* div(Sym*);
+	virtual Sym* ins(Sym*);
 };
 
 extern map<string,Sym*> env;
@@ -30,10 +32,14 @@ extern void env_init();
 extern void W(Sym*);
 extern void W(string);
 
+struct Directive: Sym { Directive(string); Sym*eval(); };
+
 struct Str: Sym { Str(string); Sym*copy(); 
 	Sym*add(Sym*); string tagval(); Sym*eval(); };
 
 struct List: Sym { List(); Sym*add(Sym*); Sym*div(Sym*); Sym*str(); };
+
+struct Cons: Sym { Cons(Sym*,Sym*); };
 
 struct Op: Sym { Op(string); Sym*eval(); Sym*copy(); };
 

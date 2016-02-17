@@ -1,11 +1,14 @@
-log.log: src.src ./exe.exe
+CORE = .
+#CORE = ../Y
+log.log: ../Y/skel/skel.bI ./exe.exe
 	./exe.exe < $< > $@ && tail $(TAIL) log.log
-C = cpp.cpp ypp.tab.cpp lex.yy.c
-H = hpp.hpp ypp.tab.hpp
-CXXFLAGS = -I. -std=gnu++11 -DMODULE=\"$(notdir $(CURDIR))\"
-./exe.exe: $(C) $(H)
+C = $(CORE)/cpp.cpp ypp.tab.cpp lex.yy.c
+H = $(CORE)/hpp.hpp ypp.tab.hpp
+CXXFLAGS = -I$(CORE) -I. -std=gnu++11 \
+		   -DMODULE=\"$(notdir $(CURDIR))\" -DOS=\"$(OS)\" -DEXE=\"$(EXE)\"
+./exe.exe: $(C) $(H) Makefile
 	$(CXX) $(CXXFLAGS) -o $@ $(C)
-ypp.tab.cpp: ypp.ypp
+ypp.tab.cpp: $(CORE)/ypp.ypp
 	bison $<
-lex.yy.c: lpp.lpp
+lex.yy.c: $(CORE)/lpp.lpp
 	flex $<

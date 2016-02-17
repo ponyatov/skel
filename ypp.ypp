@@ -1,19 +1,21 @@
 %{
 #include <hpp.hpp>
 %}
-%defines %union { Sym*o; }
-%token <o> SYM NUM STR
-%token <o> L R LQ RQ LB RB
-%token <o> EQ AT MAP TILD COLON
-%token <o> ADD SUB MUL DIV POW
-%type <o> ex scalar list lambda
+%defines %union { Sym*o; }			/* AST: symbolic type parse tree		*/
+%token <o> SYM NUM STR				/* scalar: symbol number 'string'		*/
+%token <o> L R LQ RQ LB RB			/* bracket: ( ) [ ] { }					*/
+%token <o> EQ AT COLON TILD PERC	/* operator: = @ : ~ %					*/
+%token <o> ADD SUB MUL DIV POW		/* operator: + - * / ^					*/
+%token <o> INS DEL MAP				/* operator: += -= |					*/
+%type <o> ex scalar list lambda		/* expression scalar [list] {lambda}	*/
 
-%left EQ
+%left EQ INS
 %left ADD SUB
 %left MUL DIV
 %left POW
 %left AT MAP
 %left TILD
+
 %%
 REPL	: | REPL ex			{ W($2->eval()); W("\n"); } ;
 scalar	: SYM | NUM | STR ;
@@ -25,11 +27,14 @@ ex		: scalar
 		| ex EQ ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex AT ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex MAP ex			{ $$=$2; $$->push($1); $$->push($3); }
+		| ex PERC ex		{ $$=$2; $$->push($1); $$->push($3); }
 		| ex ADD ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex SUB ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex MUL ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex DIV ex			{ $$=$2; $$->push($1); $$->push($3); }
 		| ex POW ex			{ $$=$2; $$->push($1); $$->push($3); }
+		| ex INS ex			{ $$=$2; $$->push($1); $$->push($3); }
+		| ex DEL ex			{ $$=$2; $$->push($1); $$->push($3); }
 ;
 list	:					{ $$=new List(); }
 	 	| list ex			{ $$=$1; $$->push($2); }

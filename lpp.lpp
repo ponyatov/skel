@@ -8,6 +8,8 @@ string LexString;
 %%
 #[^\n]*			{}
 
+^\.end			{yyterminate();}
+
 '				{BEGIN(lexstring);LexString="";}
 <lexstring>'	{BEGIN(INITIAL); yylval.o = new Str(LexString); return STR;}
 <lexstring>.	{LexString+=yytext[0];}
@@ -23,9 +25,9 @@ string LexString;
 
 \=				TOC(Op,EQ)
 \@				TOC(Op,AT)
-\|				TOC(Op,MAP)
-\~				TOC(Op,TILD)
 \:				TOC(Op,COLON)
+\~				TOC(Op,TILD)
+\|				TOC(Op,MAP)
 
 \+				TOC(Op,ADD)
 \-				TOC(Op,SUB)

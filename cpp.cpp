@@ -79,8 +79,7 @@ Sym* Op::eval() {
 	if (val=="@") return nest[0]->at(nest[1]);
 	if (val=="+") return nest[0]->add(nest[1]);
 	if (val=="/") return nest[0]->div(nest[1]);
-	return this;
-}
+	return this; }
 
 Fn::Fn(string V, FN F):Sym("V") { fn=F; }
 Sym* Fn::at(Sym*o) { return fn(o); }
@@ -90,17 +89,17 @@ Sym* Fn::evaluate(Sym*o) { return o->eval(); }
 Lambda::Lambda():Sym("^","^") {}
 Sym* Lambda::eval() { return this; } // block eval
 
-// f**ken magic: apply by replace, not apply by eval in environment
+// f**ken magic: apply by rewrite, not apply by eval in environment
 // WARNING: RECURSION NOT APPLICABLE (???)
 
-bool Sym::match(Sym*o) { return o->str()->val==val; }
-
-Sym* Sym::copy()		{ Sym*C = new Sym(tag,val);
+Sym* Sym::copy() { Sym*C = new Sym(tag,val);
 	for (auto pr=pars.begin(),e=pars.end();pr!=e;pr++)	// par{}ameters
 		C->pars[pr->first]=pr->second;
 	for (auto it=nest.begin(),e=nest.end();it!=e;it++)	// nest[]ed
 		C->push((*it)->copy());
 	return C; }
+
+bool Sym::match(Sym*o) { return o->str()->val==val; }
 
 Sym* Sym::replace(Sym*A,Sym*B) {
 	if (match(A)) return B;
@@ -110,11 +109,11 @@ Sym* Sym::replace(Sym*A,Sym*B) {
 		(*it) = (*it)->replace(A,B);
 	return this; }
 
-Sym* Lambda::at(Sym*o) {
-	Sym* R = copy()->replace(pars.begin()->second,o);
-//	return R;	// uncomment to see replaces in copied {lambda} 
+Sym* Lambda::at(Sym*o) {								// lambda apply
+	Sym* R = copy()->replace(pars.begin()->second,o);	// via rewrite
 	if (R->nest.size()!=1) yyerror("multibody lambda:"+R->dump());
-	else return (R->nest[0])->eval(); }
+	else return (R->nest[0])->eval(); } // with eval
+//	else return (R->nest[0])        ; } // as symbolic expression
 
 map<string,Sym*> env;
 void env_init() {
